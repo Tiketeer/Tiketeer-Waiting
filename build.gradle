@@ -29,6 +29,10 @@ dependencies {
 
 	// DB
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation("it.ozimov:embedded-redis:0.7.2")
+
+	// logger
+	implementation 'io.github.oshai:kotlin-logging-jvm:5.1.0'
 }
 
 tasks.withType(KotlinCompile) {
