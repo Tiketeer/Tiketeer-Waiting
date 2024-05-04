@@ -4,11 +4,14 @@ import com.tiketeer.TiketeerWaiting.domain.waiting.usecase.dto.GetRankAndTokenRe
 import reactor.core.publisher.Mono
 
 data class GetRankAndTokenResponseDto(
-    val getRankAndTokenResponse: Mono<RankAndToken>
+    val rank: Long,
+    val token: String? = null,
 ) {
     companion object {
-        fun convertFromDto(dto: GetRankAndTokenResultDto): GetRankAndTokenResponseDto {
-            return GetRankAndTokenResponseDto(dto.rankAndToken)
+        fun convertFromDto(dto: Mono<GetRankAndTokenResultDto>): Mono<GetRankAndTokenResponseDto> {
+            return dto.flatMap { r ->
+                Mono.just(GetRankAndTokenResponseDto(r.rank, r.token))
+            }
         }
     }
 }

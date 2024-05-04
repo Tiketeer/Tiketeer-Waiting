@@ -1,6 +1,5 @@
 package com.tiketeer.TiketeerWaiting.domain.waiting.usecase
 
-import com.tiketeer.TiketeerWaiting.domain.waiting.controller.dto.RankAndToken
 import com.tiketeer.TiketeerWaiting.domain.waiting.usecase.dto.GetRankAndTokenCommandDto
 import com.tiketeer.TiketeerWaiting.domain.waiting.usecase.dto.GetRankAndTokenResultDto
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,7 +14,7 @@ class GetRankAndTokenUseCase @Autowired constructor(private val redisTemplate: R
     @Value("\${waiting.entry-size}")
     private lateinit var entrySize: Number
 
-    override fun getRankAndToken(dto: GetRankAndTokenCommandDto): GetRankAndTokenResultDto {
+    override fun getRankAndToken(dto: GetRankAndTokenCommandDto): Mono<GetRankAndTokenResultDto> {
         val currentTime = dto.entryTime
         val token = generateToken(dto.email, dto.ticketingId, currentTime)
         val mono = redisTemplate.opsForZSet().rank(dto.ticketingId.toString(), token)
@@ -24,18 +23,16 @@ class GetRankAndTokenUseCase @Autowired constructor(private val redisTemplate: R
                     .then(redisTemplate.opsForZSet().rank(dto.ticketingId.toString(), token))
             )
 
-        val ret: Mono<RankAndToken> = mono
+        val ret: Mono<GetRankAndTokenResultDto> = mono
             .flatMap { l ->
             if (l < entrySize.toInt()) {
-                Mono.just(RankAndToken(l, generateToken(dto.email, dto.ticketingId, currentTime)))
+                Mono.just(GetRankAndTokenResultDto(l, generateToken(dto.email, dto.ticketingId, currentTime)))
             } else {
-                Mono.just(RankAndToken(l))
+                Mono.just(GetRankAndTokenResultDto(l))
             }
         }
 
-        println(ret.block())
-
-        return GetRankAndTokenResultDto(ret)
+        return ret
     }
 
     private fun generateToken(email: String, ticketingId: UUID, entryTime: Long) : String {

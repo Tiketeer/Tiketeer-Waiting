@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import reactor.core.publisher.Mono
 import java.util.UUID
 
 @RestController
@@ -15,10 +16,10 @@ class WaitingController(
         private val getRankAndTokenUseCase: GetRankAndToken
 ) {
     @GetMapping
-    fun getRankAndToken(@RequestParam(required = true) ticketingId: UUID): GetRankAndTokenResponseDto {
+    fun getRankAndToken(@RequestParam(required = true) ticketingId: UUID): Mono<GetRankAndTokenResponseDto> {
         // TODO: JWT 디코딩 필터 적용 후 JWT 내에서 가져오도록 수정
         val email = "test@test.com"
-        val result = getRankAndTokenUseCase.getRankAndToken(GetRankAndTokenCommandDto(email, ticketingId))
+        val result = getRankAndTokenUseCase.getRankAndToken(GetRankAndTokenCommandDto(email, ticketingId, System.currentTimeMillis()))
         return GetRankAndTokenResponseDto.convertFromDto(result)
     }
 }
