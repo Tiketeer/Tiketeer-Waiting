@@ -1,8 +1,8 @@
 package com.tiketeer.TiketeerWaiting.domain.waiting.usecase
 
 import com.tiketeer.TiketeerWaiting.configuration.EmbeddedRedisConfig
-import com.tiketeer.TiketeerWaiting.domain.waiting.controller.dto.RankAndToken
 import com.tiketeer.TiketeerWaiting.domain.waiting.usecase.dto.GetRankAndTokenCommandDto
+import com.tiketeer.TiketeerWaiting.domain.waiting.usecase.dto.GetRankAndTokenResultDto
 import org.junit.jupiter.api.BeforeEach
 
 import org.junit.jupiter.api.Test
@@ -39,8 +39,8 @@ class GetRankAndTokenUseCaseTest {
         val entryTime = System.currentTimeMillis()
         val result = getRankAndTokenUseCase.getRankAndToken(GetRankAndTokenCommandDto(email, ticketingId, entryTime))
 
-        StepVerifier.create(result.rankAndToken)
-            .expectNext(RankAndToken(0, "${email}:${ticketingId}:${entryTime}"))
+        StepVerifier.create(result)
+            .expectNext(GetRankAndTokenResultDto(0, "${email}:${ticketingId}:${entryTime}"))
             .expectComplete()
             .verify()
     }
@@ -52,15 +52,15 @@ class GetRankAndTokenUseCaseTest {
             val email = "test${i}@test.com"
             val entryTime = System.currentTimeMillis()
             val result = getRankAndTokenUseCase.getRankAndToken(GetRankAndTokenCommandDto(email, ticketingId, entryTime))
-            result.rankAndToken.block()
+            result.block()
         }
 
         val email = "test@test.com"
         val entryTime = System.currentTimeMillis()
         val result = getRankAndTokenUseCase.getRankAndToken(GetRankAndTokenCommandDto(email, ticketingId, entryTime))
 
-        StepVerifier.create(result.rankAndToken)
-            .expectNext(RankAndToken(entrySize.toLong()))
+        StepVerifier.create(result)
+            .expectNext(GetRankAndTokenResultDto(entrySize.toLong()))
             .expectComplete()
             .verify()
     }
