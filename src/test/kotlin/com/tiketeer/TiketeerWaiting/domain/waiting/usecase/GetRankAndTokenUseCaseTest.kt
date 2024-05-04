@@ -40,7 +40,7 @@ class GetRankAndTokenUseCaseTest {
         val result = getRankAndTokenUseCase.getRankAndToken(GetRankAndTokenCommandDto(email, ticketingId, entryTime))
 
         StepVerifier.create(result)
-            .expectNext(GetRankAndTokenResultDto(0, "${email}:${ticketingId}:${entryTime}"))
+            .expectNext(GetRankAndTokenResultDto(0, "${email}:${ticketingId}"))
             .expectComplete()
             .verify()
     }

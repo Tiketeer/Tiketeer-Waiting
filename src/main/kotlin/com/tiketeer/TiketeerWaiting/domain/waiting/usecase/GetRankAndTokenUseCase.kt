@@ -36,6 +36,6 @@ class GetRankAndTokenUseCase @Autowired constructor(private val redisTemplate: R
     }
 
     private fun generateToken(email: String, ticketingId: UUID, entryTime: Long) : String {
-        return "${email}:${ticketingId}:${entryTime}"
+        return "${email}:${ticketingId}"
     }
 }
