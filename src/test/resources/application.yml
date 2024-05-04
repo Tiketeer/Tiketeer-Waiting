@@ -1,0 +1,17 @@
+spring:
+  profiles:
+    active: test
+  application:
+    name: TiketeerWaiting
+  data:
+    redis:
+      repositories:
+        enabled: false
+      host: 127.0.0.1
+      port: 6379
+      password: 1q2w3e4r@@Q
+  redis:
+    maxmemory: 10
+
+waiting:
+  entry-size: 3
