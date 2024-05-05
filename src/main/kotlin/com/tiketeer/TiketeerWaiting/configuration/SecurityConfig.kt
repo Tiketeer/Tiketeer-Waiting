@@ -12,23 +12,25 @@ import org.springframework.security.config.web.server.ServerHttpSecurity.FormLog
 import org.springframework.security.config.web.server.ServerHttpSecurity.HttpBasicSpec
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter
+import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository
 
 @Configuration
 @EnableWebFluxSecurity
-class SecurityConfig(
-		authenticationManager: JwtAuthenticationManager,
-		serverAuthenticationConverter: JwtServerAuthenticationConverter
-) {
-	private val authenticationWebFilter: AuthenticationWebFilter = AuthenticationWebFilter(authenticationManager)
-	init {
-		authenticationWebFilter.setServerAuthenticationConverter(serverAuthenticationConverter)
-	}
+class SecurityConfig {
 	@Bean
-	fun securityWebFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
+	fun securityWebFilterChain(
+			http: ServerHttpSecurity,
+			authenticationManager: JwtAuthenticationManager,
+			serverAuthenticationConverter: JwtServerAuthenticationConverter
+	): SecurityWebFilterChain {
+		val authenticationWebFilter = AuthenticationWebFilter(authenticationManager)
+		authenticationWebFilter.setServerAuthenticationConverter(serverAuthenticationConverter)
+
 		return http
 				.csrf(CsrfSpec::disable)
 				.formLogin(FormLoginSpec::disable)
 				.httpBasic(HttpBasicSpec::disable)
+				.securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
 				.addFilterAt(authenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
 				.authorizeExchange {
 					e -> e.anyExchange().authenticated()
