@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+import java.time.LocalDateTime
 import java.util.UUID
 
 @RestController
@@ -23,8 +24,8 @@ class WaitingController(
     ): Mono<GetRankAndTokenResponseDto> {
         return authentication
                 .map { auth -> auth.name }
-                .map { email -> GetRankAndTokenCommandDto(email, ticketingId) }
-                .map(getRankAndTokenUseCase::getRankAndToken)
+                .map { email -> GetRankAndTokenCommandDto(email, ticketingId, System.currentTimeMillis()) }
+                .flatMap(getRankAndTokenUseCase::getRankAndToken)
                 .map(GetRankAndTokenResponseDto::convertFromDto)
     }
 }

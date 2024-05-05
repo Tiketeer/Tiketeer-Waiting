@@ -3,7 +3,7 @@ package com.tiketeer.TiketeerWaiting.domain.waiting.controller.dto
 import com.tiketeer.TiketeerWaiting.domain.waiting.usecase.dto.GetRankAndTokenResultDto
 
 data class GetRankAndTokenResponseDto(
-    val rank: Int,
+    val rank: Long,
     val token: String? = null,
 ) {
     companion object {

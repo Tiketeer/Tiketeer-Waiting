@@ -4,5 +4,6 @@ import java.util.UUID
 
 data class GetRankAndTokenCommandDto(
     val email: String,
-    val ticketingId: UUID
+    val ticketingId: UUID,
+    val entryTime: Long
 )
