@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service
 import javax.crypto.SecretKey
 
 @Service
-class AccessTokenService(@Value("\${jwt.secret - key}") secretKey: String) {
+class AccessTokenService(@Value("\${jwt.secret-key}") secretKey: String) {
     private val secretKey: SecretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey))
 
     fun verifyToken(accessToken: String): AccessTokenPayload {
