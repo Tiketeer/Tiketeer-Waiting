@@ -1,4 +1,4 @@
-package com.tiketeer.TiketeerWaiting.config;
+package com.tiketeer.TiketeerWaiting.configuration;
 
 import com.tiketeer.TiketeerWaiting.auth.jwt.JwtServerAuthenticationConverter
 import org.springframework.context.annotation.Bean;
