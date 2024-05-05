@@ -16,7 +16,7 @@ class GetRankAndTokenUseCase @Autowired constructor(private val redisTemplate: R
 
     override fun getRankAndToken(dto: GetRankAndTokenCommandDto): Mono<GetRankAndTokenResultDto> {
         val currentTime = dto.entryTime
-        val token = generateToken(dto.email, dto.ticketingId, currentTime)
+        val token = generateToken(dto.email, dto.ticketingId)
         val mono = redisTemplate.opsForZSet().rank(dto.ticketingId.toString(), token)
             .switchIfEmpty(
                 redisTemplate.opsForZSet().add(dto.ticketingId.toString(), token, currentTime.toDouble())
@@ -26,7 +26,7 @@ class GetRankAndTokenUseCase @Autowired constructor(private val redisTemplate: R
         val ret: Mono<GetRankAndTokenResultDto> = mono
             .flatMap { l ->
             if (l < entrySize.toInt()) {
-                Mono.just(GetRankAndTokenResultDto(l, generateToken(dto.email, dto.ticketingId, currentTime)))
+                Mono.just(GetRankAndTokenResultDto(l, generateToken(dto.email, dto.ticketingId)))
             } else {
                 Mono.just(GetRankAndTokenResultDto(l))
             }
@@ -35,7 +35,7 @@ class GetRankAndTokenUseCase @Autowired constructor(private val redisTemplate: R
         return ret
     }
 
-    private fun generateToken(email: String, ticketingId: UUID, entryTime: Long) : String {
+    private fun generateToken(email: String, ticketingId: UUID) : String {
         return "${email}:${ticketingId}"
     }
 }
