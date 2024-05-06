@@ -17,7 +17,7 @@ class JwtServerAuthenticationConverter(
 	override fun convert(exchange: ServerWebExchange): Mono<Authentication> {
 		return Mono.justOrEmpty(extractAccessToken(exchange))
 				.map { cookie -> cookie.value }
-				.map(accessTokenService::verifyToken)
+				.flatMap(accessTokenService::verifyToken)
 				.map(this::createAuthentication)
 	}
 
