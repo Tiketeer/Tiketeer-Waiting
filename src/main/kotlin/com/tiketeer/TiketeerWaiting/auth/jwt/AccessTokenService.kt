@@ -10,13 +10,13 @@ import javax.crypto.SecretKey
 
 @Service
 class AccessTokenService(@Value("\${jwt.secret-key}") secretKey: String) {
-    private val secretKey: SecretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey))
+	private val secretKey: SecretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey))
 
-    fun verifyToken(accessToken: String): Mono<AccessTokenPayload> {
+	fun verifyToken(accessToken: String): Mono<AccessTokenPayload> {
 		return Mono.just(accessToken)
 				.map {token -> Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).payload}
 				.map {payload -> AccessTokenPayload(payload.subject, payload.get("role", String::class.java))}
-    }
+	}
 
-    data class AccessTokenPayload(val email: String, val role: String)
+	data class AccessTokenPayload(val email: String, val role: String)
 }
