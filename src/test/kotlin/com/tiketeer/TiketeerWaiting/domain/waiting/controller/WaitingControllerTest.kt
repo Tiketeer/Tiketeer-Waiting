@@ -2,8 +2,12 @@ package com.tiketeer.TiketeerWaiting.domain.waiting.controller
 
 import com.tiketeer.TiketeerWaiting.auth.constant.JwtMetadata
 import com.tiketeer.TiketeerWaiting.configuration.EmbeddedRedisConfig
+import com.tiketeer.TiketeerWaiting.configuration.R2dbcConfiguration
+import com.tiketeer.TiketeerWaiting.domain.ticketing.Ticketings
+import com.tiketeer.TiketeerWaiting.domain.ticketing.repository.TicketingRepository
 import com.tiketeer.TiketeerWaiting.domain.waiting.usecase.GetRankAndTokenUseCase
 import com.tiketeer.TiketeerWaiting.domain.waiting.usecase.dto.GetRankAndTokenCommandDto
+import com.tiketeer.TiketeerWaiting.testHelper.TestHelper
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
@@ -14,11 +18,14 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory
+import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.test.web.reactive.server.WebTestClient
+import java.nio.ByteBuffer
+import java.time.LocalDateTime
 import java.util.Date
 import java.util.UUID
 
-@Import(EmbeddedRedisConfig::class)
+@Import(EmbeddedRedisConfig::class, TestHelper::class, R2dbcConfiguration::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class WaitingControllerTest {
 	@Autowired
@@ -30,6 +37,12 @@ class WaitingControllerTest {
 	@Autowired
 	lateinit var getRankAndTokenUseCase: GetRankAndTokenUseCase
 
+	@Autowired
+	lateinit var databaseClient: DatabaseClient
+
+	@Autowired
+	lateinit var testHelper: TestHelper
+
 	@Value("\${jwt.secret-key}")
 	lateinit var jwtSecretKey: String
 
@@ -40,12 +53,19 @@ class WaitingControllerTest {
 	fun init() {
 		val flushDb = redisConnectionFactory.reactiveConnection.serverCommands().flushDb()
 		flushDb.block()
+
+		databaseClient
+			.sql("delete from ticketings")
+			.fetch()
+			.rowsUpdated()
+			.block()
 	}
 
 	@Test
 	fun `토큰이 없는 유저 - waiting 요청 - 호출 실패`() {
 		// given
 		val ticketingId = UUID.randomUUID()
+
 		// when
 		webTestClient.get().uri("/waiting?ticketingId=$ticketingId")
 				// then
@@ -59,6 +79,10 @@ class WaitingControllerTest {
 		val email = "test@test.com"
 		val role = "USER"
 		val ticketingId = UUID.randomUUID()
+
+		val start = LocalDateTime.now().minusDays(1)
+		val end = LocalDateTime.now().plusDays(1)
+		testHelper.insertTicketing(ticketingId, start, end)
 
 		// when
 		webTestClient.get().uri("/waiting?ticketingId=$ticketingId")
@@ -75,6 +99,10 @@ class WaitingControllerTest {
 	fun `토큰이 있는 유저 - 가득찬 대기열에 waiting 요청 - 토큰 반환 X`() {
 		// given
 		val ticketingId = UUID.randomUUID()
+		val start = LocalDateTime.now().minusDays(1)
+		val end = LocalDateTime.now().plusDays(1)
+		testHelper.insertTicketing(ticketingId, start, end)
+
 		for (i in 1..entrySize.toInt()) {
 			val email = "test${i}@test.com"
 			val entryTime = System.currentTimeMillis()

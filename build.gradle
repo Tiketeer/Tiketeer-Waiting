@@ -22,6 +22,7 @@ dependencies {
 	// Default
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	implementation 'org.springframework.boot:spring-boot-starter-aop'
 
 	implementation 'org.jetbrains.kotlin:kotlin-reflect'
 	implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor'
@@ -44,6 +45,9 @@ dependencies {
 	// DB
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation("it.ozimov:embedded-redis:0.7.2")
+	implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+	testImplementation('io.r2dbc:r2dbc-h2')
+	implementation("io.asyncer:r2dbc-mysql:1.1.0")
 
 	// Logger
 	implementation 'io.github.oshai:kotlin-logging-jvm:5.1.0'
