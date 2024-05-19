@@ -21,13 +21,14 @@ class GetRankAndTokenUseCase @Autowired constructor(private val redisTemplate: R
     override fun getRankAndToken(dto: GetRankAndTokenCommandDto): Mono<GetRankAndTokenResultDto> {
         val currentTime = dto.entryTime
         val token = generateToken(dto.email, dto.ticketingId)
+        val key = "queue::${dto.ticketingId}"
 
         val validateResult = validateSalePeriod(dto.ticketingId, currentTime)
         val mono = validateResult.flatMap { _ ->
-            redisTemplate.opsForZSet().rank(dto.ticketingId.toString(), token)
+            redisTemplate.opsForZSet().rank(key, token)
                 .switchIfEmpty(
-                    redisTemplate.opsForZSet().add(dto.ticketingId.toString(), token, currentTime.toDouble())
-                        .then(redisTemplate.opsForZSet().rank(dto.ticketingId.toString(), token))
+                    redisTemplate.opsForZSet().add(key, token, currentTime.toDouble())
+                        .then(redisTemplate.opsForZSet().rank(key, token))
                 )
         }
 
