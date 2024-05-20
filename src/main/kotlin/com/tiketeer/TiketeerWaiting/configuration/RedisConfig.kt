@@ -35,9 +35,4 @@ class RedisConfig {
     fun redisTemplate(connectionFactory: ReactiveRedisConnectionFactory) : ReactiveRedisTemplate<String, String> {
         return ReactiveRedisTemplate(connectionFactory, RedisSerializationContext.string())
     }
-
-    @Bean
-    fun aspectUtils(expressionParser: SpelExpressionParser) : AspectUtils {
-        return AspectUtils(expressionParser)
-    }
 }
