@@ -8,6 +8,6 @@ import reactor.core.publisher.Mono
 import java.util.UUID
 
 interface TicketingRepository : ReactiveCrudRepository<Ticketings, UUID> {
-	@RedisCacheable(key = "#id")
+	@RedisCacheable(key = "#id", value = "ticketingId")
 	override fun findById(id: UUID) : Mono<Ticketings>
 }

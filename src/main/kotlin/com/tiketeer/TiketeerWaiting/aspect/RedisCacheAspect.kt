@@ -30,7 +30,7 @@ class RedisCacheAspect(
 		val returnType = method.returnType
 		val annotation = method.getAnnotation(RedisCacheable::class.java)
 
-		val key = aspectUtils.resolveKey(joinPoint, annotation.key)
+		val key = aspectUtils.resolveKey(joinPoint, annotation.key, annotation.value)
 
 		val typeReference = aspectUtils.getTypeReference(method)
 

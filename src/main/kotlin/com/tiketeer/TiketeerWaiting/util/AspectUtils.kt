@@ -13,8 +13,8 @@ import java.lang.reflect.Type
 
 @Component
 class AspectUtils(private val expressionParser: SpelExpressionParser) {
-	fun resolveKey(joinPoint: JoinPoint, key: String): String {
-		if (StringUtils.hasText(key)) {
+	fun resolveKey(joinPoint: JoinPoint, key: String, value: String): String {
+		if (StringUtils.hasText(key) && StringUtils.hasText(value)) {
 			if (key.contains("#") || key.contains("'")) {
 				val parameterNames: Array<String> = getParamNames(joinPoint)
 				val args = joinPoint.args
@@ -22,12 +22,12 @@ class AspectUtils(private val expressionParser: SpelExpressionParser) {
 				for (i in parameterNames.indices) {
 					context.setVariable(parameterNames[i], args[i])
 				}
-				val value = expressionParser.parseExpression(key).getValue(context)
-				return value.toString()
+				val v = expressionParser.parseExpression(key).getValue(context)
+				return "$value::$v"
 			}
-			return key
+			return "$value::$key"
 		}
-		throw RuntimeException("RedisReactiveCache annotation missing key")
+		throw RuntimeException("RedisReactiveCache annotation missing key or missing value")
 	}
 
 	private fun getParamNames(joinPoint: JoinPoint): Array<String> {
