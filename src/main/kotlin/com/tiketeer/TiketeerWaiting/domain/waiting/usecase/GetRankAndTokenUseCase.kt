@@ -11,6 +11,7 @@ import reactor.core.publisher.Mono
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.util.UUID
 
 @Service
@@ -48,14 +49,18 @@ class GetRankAndTokenUseCase @Autowired constructor(private val redisTemplate: R
     }
 
     private fun validateSalePeriod(ticketingId: UUID, currentTime: Long) : Mono<Boolean> {
+        println("validateSalePeriod()")
         val findById = ticketingRepository.findById(ticketingId)
-        val local = LocalDateTime.ofInstant(Instant.ofEpochMilli(currentTime), ZoneId.systemDefault())
+        val local = LocalDateTime.ofInstant(Instant.ofEpochMilli(currentTime), ZoneId.of("Asia/Seoul"))
         return findById.flatMap { ticketing ->
             if (ticketing.saleStart.isBefore(local) && ticketing.saleEnd.isAfter(local)) {
                 Mono.just(true)
             } else {
+                println(ticketing.saleStart)
+                println(ticketing.saleEnd)
                 Mono.error(RuntimeException("not sale period"))
             }
         }
     }
+
 }
