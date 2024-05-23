@@ -49,7 +49,6 @@ class RedisConfig {
     fun redisMessageListenerContainer(connectionFactory: RedisConnectionFactory) : RedisMessageListenerContainer{
         val listenerContainer = RedisMessageListenerContainer();
         listenerContainer.setConnectionFactory(connectionFactory);
-//        listenerContainer.addMessageListener(expirationListener, PatternTopic("__keyevent@*__:expired"));
         listenerContainer.setErrorHandler { e -> logger.error(e) { "There was an error in redis key expiration listener container" } };
         return listenerContainer;
     }

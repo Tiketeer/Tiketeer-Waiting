@@ -8,9 +8,10 @@ spring:
       repositories:
         enabled: false
       host: 127.0.0.1
-      port: 6379
-  redis:
-    maxmemory: 10
+      port: 6789
+      password: 1q2w3e4r@@Q
+      maxmemory: 10
+      notify-keyspace-events: Ex
 
 waiting:
   entry-size: 3

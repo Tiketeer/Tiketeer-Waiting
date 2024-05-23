@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory
 import org.springframework.data.redis.connection.RedisConnectionFactory
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.data.redis.core.RedisKeyValueAdapter
@@ -33,15 +34,18 @@ class EmbeddedRedisConfig {
     @Value("\${spring.data.redis.port}")
     private lateinit var port: Number
 
-    @Value("\${spring.redis.maxmemory}")
+    @Value("\${spring.data.redis.maxmemory}")
     private lateinit var maxmemorySize: Number
+
+    @Value("\${spring.data.redis.notify-keyspace-events}")
+    private lateinit var keyspaceEvent: String
 
     private lateinit var redisServer: RedisServer
 
     @PostConstruct
     @Throws(IOException::class)
     fun startRedis() {
-        this.redisServer = RedisServer.builder().port(port.toInt()).setting("maxmemory " + maxmemorySize + "M").build()
+        this.redisServer = RedisServer.builder().port(port.toInt()).setting("maxmemory " + maxmemorySize + "M").setting("notify-keyspace-events $keyspaceEvent").build()
         try {
             this.redisServer.start()
             logger.info {"레디스 서버 시작 성공" }
@@ -67,10 +71,9 @@ class EmbeddedRedisConfig {
     }
 
     @Bean
-    fun redisMessageListenerContainer(connectionFactory: RedisConnectionFactory) : RedisMessageListenerContainer{
+    fun redisMessageListenerContainer(connectionFactory: LettuceConnectionFactory) : RedisMessageListenerContainer{
         val listenerContainer = RedisMessageListenerContainer();
         listenerContainer.setConnectionFactory(connectionFactory);
-//        listenerContainer.addMessageListener(expirationListener, PatternTopic("__keyevent@*__:expired"));
         listenerContainer.setErrorHandler { e -> logger.error(e) { "There was an error in redis key expiration listener container" } };
         return listenerContainer;
     }
