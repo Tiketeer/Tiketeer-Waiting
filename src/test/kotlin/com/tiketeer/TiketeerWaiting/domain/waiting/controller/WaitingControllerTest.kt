@@ -3,8 +3,6 @@ package com.tiketeer.TiketeerWaiting.domain.waiting.controller
 import com.tiketeer.TiketeerWaiting.auth.constant.JwtMetadata
 import com.tiketeer.TiketeerWaiting.configuration.EmbeddedRedisConfig
 import com.tiketeer.TiketeerWaiting.configuration.R2dbcConfiguration
-import com.tiketeer.TiketeerWaiting.domain.ticketing.Ticketings
-import com.tiketeer.TiketeerWaiting.domain.ticketing.repository.TicketingRepository
 import com.tiketeer.TiketeerWaiting.domain.waiting.usecase.GetRankAndTokenUseCase
 import com.tiketeer.TiketeerWaiting.domain.waiting.usecase.dto.GetRankAndTokenCommandDto
 import com.tiketeer.TiketeerWaiting.testHelper.TestHelper
@@ -20,7 +18,6 @@ import org.springframework.context.annotation.Import
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory
 import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.test.web.reactive.server.WebTestClient
-import java.nio.ByteBuffer
 import java.time.LocalDateTime
 import java.util.Date
 import java.util.UUID
