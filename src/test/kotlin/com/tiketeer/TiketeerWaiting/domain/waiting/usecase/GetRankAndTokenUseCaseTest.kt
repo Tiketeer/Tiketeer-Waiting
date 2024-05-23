@@ -5,18 +5,22 @@ import com.tiketeer.TiketeerWaiting.configuration.R2dbcConfiguration
 import com.tiketeer.TiketeerWaiting.domain.waiting.usecase.dto.GetRankAndTokenCommandDto
 import com.tiketeer.TiketeerWaiting.domain.waiting.usecase.dto.GetRankAndTokenResultDto
 import com.tiketeer.TiketeerWaiting.testHelper.TestHelper
+import org.assertj.core.api.Assertions
+import org.awaitility.Awaitility
+import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.BeforeEach
-
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory
+import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.r2dbc.core.DatabaseClient
 import reactor.test.StepVerifier
+import java.time.Duration
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 @Import(EmbeddedRedisConfig::class, TestHelper::class, R2dbcConfiguration::class)
 @SpringBootTest
@@ -33,8 +37,14 @@ class GetRankAndTokenUseCaseTest {
     @Autowired
     lateinit var databaseClient: DatabaseClient
 
+    @Autowired
+    lateinit var redisTemplate: ReactiveRedisTemplate<String, String>
+
     @Value("\${waiting.entry-size}")
     lateinit var entrySize: Number
+
+    @Value("\${waiting.ttl}")
+    private lateinit var ttl: Number
 
     @BeforeEach
     fun init() {
@@ -53,6 +63,7 @@ class GetRankAndTokenUseCaseTest {
         val email = "test@test.com"
         val ticketingId = UUID.randomUUID()
         val entryTime = System.currentTimeMillis()
+        val ttlKey =  "ttl::${ticketingId}::${email}"
 
         val start = LocalDateTime.now().minusDays(2)
         val end = LocalDateTime.now().plusDays(2)
@@ -65,6 +76,13 @@ class GetRankAndTokenUseCaseTest {
             .expectNext(GetRankAndTokenResultDto(0, "${email}:${ticketingId}"))
             .expectComplete()
             .verify()
+
+        val redisValue = redisTemplate.opsForValue().get(ttlKey).map { v -> println("redis value : $v")
+            v}
+        StepVerifier.create(redisValue)
+            .expectNext("")
+            .expectComplete()
+            .verify();
     }
 
     @Test
@@ -90,6 +108,43 @@ class GetRankAndTokenUseCaseTest {
             .expectNext(GetRankAndTokenResultDto(entrySize.toLong()))
             .expectComplete()
             .verify()
+    }
+
+    @Test
+    fun `대기열 길이만큼 유저 생성 - 대기열을 모두 채우도록 요청 후 한명 더 요청 - 현재 순위 {entrySize}위 - {ttl+10} 초 후 재요청 - 현재 순위 0위`() {
+        val ticketingId = UUID.randomUUID()
+        val start = LocalDateTime.now().minusDays(1)
+        val end = LocalDateTime.now().plusDays(1)
+
+        testHelper.insertTicketing(ticketingId, start, end)
+
+        for (i in 1..entrySize.toInt()) {
+            val email = "test${i}@test.com"
+            val entryTime = System.currentTimeMillis()
+            val result = getRankAndTokenUseCase.getRankAndToken(GetRankAndTokenCommandDto(email, ticketingId, entryTime))
+            result.block()
+        }
+
+        val email = "test@test.com"
+        val entryTime = System.currentTimeMillis()
+        val result = getRankAndTokenUseCase.getRankAndToken(GetRankAndTokenCommandDto(email, ticketingId, entryTime))
+
+        StepVerifier.create(result)
+                .expectNext(GetRankAndTokenResultDto(entrySize.toLong()))
+                .expectComplete()
+                .verify()
+
+        await().pollDelay(Duration.ofMillis(ttl.toLong()/2+10)).untilAsserted {
+            getRankAndTokenUseCase.getRankAndToken(GetRankAndTokenCommandDto(email, ticketingId, entryTime)).subscribe()
+        }
+
+        await().pollDelay(Duration.ofMillis(ttl.toLong()+10)).untilAsserted {
+            val result2 = getRankAndTokenUseCase.getRankAndToken(GetRankAndTokenCommandDto(email, ticketingId, entryTime))
+            StepVerifier.create(result2)
+                    .expectNext(GetRankAndTokenResultDto(0, "${email}:${ticketingId}"))
+                    .expectComplete()
+                    .verify()
+        }
     }
 
     @Test

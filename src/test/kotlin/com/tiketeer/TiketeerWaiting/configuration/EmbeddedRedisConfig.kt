@@ -1,5 +1,6 @@
 package com.tiketeer.TiketeerWaiting.configuration
 
+import com.tiketeer.TiketeerWaiting.util.RedisExpirationListener
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
@@ -9,9 +10,14 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory
+import org.springframework.data.redis.connection.RedisConnectionFactory
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory
 import org.springframework.data.redis.core.ReactiveRedisTemplate
+import org.springframework.data.redis.core.RedisKeyValueAdapter
+import org.springframework.data.redis.listener.PatternTopic
+import org.springframework.data.redis.listener.RedisMessageListenerContainer
+import org.springframework.data.redis.repository.configuration.EnableRedisRepositories
 import org.springframework.data.redis.serializer.RedisSerializationContext
 import redis.embedded.RedisServer
 import java.io.IOException
@@ -58,5 +64,14 @@ class EmbeddedRedisConfig {
     @Bean
     fun redisTemplate(connectionFactory: ReactiveRedisConnectionFactory) : ReactiveRedisTemplate<String, String> {
         return ReactiveRedisTemplate(connectionFactory, RedisSerializationContext.string())
+    }
+
+    @Bean
+    fun redisMessageListenerContainer(connectionFactory: RedisConnectionFactory) : RedisMessageListenerContainer{
+        val listenerContainer = RedisMessageListenerContainer();
+        listenerContainer.setConnectionFactory(connectionFactory);
+//        listenerContainer.addMessageListener(expirationListener, PatternTopic("__keyevent@*__:expired"));
+        listenerContainer.setErrorHandler { e -> logger.error(e) { "There was an error in redis key expiration listener container" } };
+        return listenerContainer;
     }
 }
