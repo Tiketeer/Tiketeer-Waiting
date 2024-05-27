@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory
 import org.springframework.data.redis.connection.RedisConnectionFactory
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration
@@ -26,7 +27,8 @@ import java.io.IOException
 private val logger = KotlinLogging.logger {}
 
 @DisplayName("Embedded Redis 설정")
-@TestConfiguration
+@Configuration
+@Profile("test")
 class EmbeddedRedisConfig {
     @Value("\${spring.data.redis.host}")
     private lateinit var host: String

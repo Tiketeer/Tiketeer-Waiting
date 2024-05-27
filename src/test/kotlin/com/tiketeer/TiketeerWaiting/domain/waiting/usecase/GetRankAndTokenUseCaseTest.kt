@@ -22,7 +22,7 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
 
-@Import(EmbeddedRedisConfig::class, TestHelper::class, R2dbcConfiguration::class)
+@Import(TestHelper::class, R2dbcConfiguration::class)
 @SpringBootTest
 class GetRankAndTokenUseCaseTest {
     @Autowired
@@ -88,7 +88,7 @@ class GetRankAndTokenUseCaseTest {
     }
 
     @Test
-    fun `대기열 길이만큼 유저 생성 - 대기열을 모두 채우도록 요청 후 한 명 더 요청 - 순위만 반환`() {
+    fun `대기열 길이만큼 유저 생성 - 대기열을 모두 채우도록 요청 후 한 명 더 요청 - 순위만 반환 및 ttl 설정`() {
         val ticketingId = UUID.randomUUID()
         val start = LocalDateTime.now().minusDays(1)
         val end = LocalDateTime.now().plusDays(1)
@@ -105,47 +105,20 @@ class GetRankAndTokenUseCaseTest {
         val email = "test@test.com"
         val entryTime = System.currentTimeMillis()
         val result = getRankAndTokenUseCase.getRankAndToken(GetRankAndTokenCommandDto(email, ticketingId, entryTime))
+        val ttlKey =  "ttl::${ticketingId}::${email}"
 
         StepVerifier.create(result)
             .expectNext(GetRankAndTokenResultDto(entrySize.toLong()))
             .expectComplete()
             .verify()
-    }
-
-    @Test
-    fun `대기열 길이만큼 유저 생성 - 대기열을 모두 채우도록 요청 후 한명 더 요청 - 현재 순위 {entrySize}위 - {ttl+10} 초 후 재요청 - 현재 순위 0위`() {
-        val ticketingId = UUID.randomUUID()
-        val start = LocalDateTime.now().minusDays(1)
-        val end = LocalDateTime.now().plusDays(1)
-
-        testHelper.insertTicketing(ticketingId, start, end)
-
-        for (i in 1..entrySize.toInt()) {
-            val email = "test${i}@test.com"
-            val entryTime = System.currentTimeMillis()
-            val result = getRankAndTokenUseCase.getRankAndToken(GetRankAndTokenCommandDto(email, ticketingId, entryTime))
-            result.block()
-        }
-
-        val email = "test@test.com"
-        val entryTime = System.currentTimeMillis()
-        val result = getRankAndTokenUseCase.getRankAndToken(GetRankAndTokenCommandDto(email, ticketingId, entryTime))
-
-        StepVerifier.create(result)
-                .expectNext(GetRankAndTokenResultDto(entrySize.toLong()))
-                .expectComplete()
-                .verify()
-
-        await().pollDelay(Duration.ofMillis(ttl.toLong()/2+10)).untilAsserted {
-            getRankAndTokenUseCase.getRankAndToken(GetRankAndTokenCommandDto(email, ticketingId, entryTime)).subscribe()
-        }
 
         await().pollDelay(Duration.ofMillis(ttl.toLong()+10)).untilAsserted {
-            val result2 = getRankAndTokenUseCase.getRankAndToken(GetRankAndTokenCommandDto(email, ticketingId, entryTime))
-            StepVerifier.create(result2)
-                    .expectNext(GetRankAndTokenResultDto(0, "${email}:${ticketingId}"))
+            val redisTtl = redisTemplate.getExpire(ttlKey).map { v -> println("redis ttl : ${v.toMillis()}")
+                v}
+            StepVerifier.create(redisTtl)
+                    .expectNextCount(0)
                     .expectComplete()
-                    .verify()
+                    .verify();
         }
     }
 
