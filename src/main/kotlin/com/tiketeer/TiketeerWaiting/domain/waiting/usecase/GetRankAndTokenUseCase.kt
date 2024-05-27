@@ -12,6 +12,7 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
+import java.util.Base64
 import java.util.UUID
 
 @Service
@@ -45,7 +46,7 @@ class GetRankAndTokenUseCase @Autowired constructor(private val redisTemplate: R
     }
 
     private fun generateToken(email: String, ticketingId: UUID) : String {
-        return "${email}:${ticketingId}"
+        return Base64.getEncoder().encodeToString("${email}:${ticketingId}".toByteArray())
     }
 
     private fun validateSalePeriod(ticketingId: UUID, currentTime: Long) : Mono<Boolean> {
