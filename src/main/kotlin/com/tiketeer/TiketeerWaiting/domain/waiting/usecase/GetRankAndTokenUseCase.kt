@@ -50,7 +50,7 @@ class GetRankAndTokenUseCase @Autowired constructor(private val redisTemplate: R
         val ret: Mono<GetRankAndTokenResultDto> = redisMono
             .flatMap { l ->
             if (l < entrySize.toInt()) {
-                redisTemplate.expire(ttlKey, Duration.ofMillis(entryTtl.toLong()))
+                redisTemplate.expire(ttlKey, Duration.ofMillis(entryTtl.toLong())).subscribe()
                 Mono.just(GetRankAndTokenResultDto(l, generateToken(dto.email, dto.ticketingId)))
             } else {
                 Mono.just(GetRankAndTokenResultDto(l))
