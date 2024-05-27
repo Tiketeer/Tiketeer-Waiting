@@ -22,7 +22,7 @@ import java.time.LocalDateTime
 import java.util.Date
 import java.util.UUID
 
-@Import(EmbeddedRedisConfig::class, TestHelper::class, R2dbcConfiguration::class)
+@Import(TestHelper::class, R2dbcConfiguration::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class WaitingControllerTest {
 	@Autowired
