@@ -2,15 +2,13 @@ package com.tiketeer.TiketeerWaiting.configuration;
 
 import com.tiketeer.TiketeerWaiting.auth.jwt.JwtAuthenticationManager
 import com.tiketeer.TiketeerWaiting.auth.jwt.JwtServerAuthenticationConverter
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.config.web.server.ServerHttpSecurity
-import org.springframework.security.config.web.server.ServerHttpSecurity.CsrfSpec
-import org.springframework.security.config.web.server.ServerHttpSecurity.FormLoginSpec
-import org.springframework.security.config.web.server.ServerHttpSecurity.HttpBasicSpec
-import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.config.web.server.ServerHttpSecurity.*
+import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository
 
@@ -33,7 +31,9 @@ class SecurityConfig {
 				.securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
 				.addFilterAt(authenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
 				.authorizeExchange {
-					e -> e.anyExchange().authenticated()
+					it
+						.pathMatchers("/actuator/**").permitAll()
+						.anyExchange().authenticated()
 				}
 				.build()
 	}

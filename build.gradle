@@ -51,6 +51,11 @@ dependencies {
 
 	// Logger
 	implementation 'io.github.oshai:kotlin-logging-jvm:5.1.0'
+
+	// OBSERVABILITY
+	implementation 'io.micrometer:micrometer-registry-prometheus:1.11.3'
+	implementation 'io.opentelemetry:opentelemetry-api'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 }
 
 tasks.withType(KotlinCompile) {
